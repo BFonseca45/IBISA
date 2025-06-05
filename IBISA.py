@@ -84,23 +84,15 @@ def total_variation(saliency, phi):
     return torch.mul(torch.sum(x_diff) + torch.sum(y_diff), phi)
 
 def train_bottleneck(model, x, y, epochs, loss_ce, loss_inf, sigma, opt):
-    saliencies = []
-    target_logit = []
-    probs_list = []
-
     for i in range(epochs):
         opt.zero_grad()        
         y_pred = model(x)
         loss = sigma*loss_ce(y_pred, y) + loss_inf(model.get_saliency())
         loss.backward()
         opt.step()
-
-        saliencies.append(model.get_saliency().detach().cpu().numpy())
-        target_logit.append(torch.squeeze(y_pred[0,y]).detach().cpu().numpy())
-        probs_list.append(torch.nn.functional.softmax(y_pred, dim=-1).detach().cpu().numpy())
-
-    # return model.get_saliency()
-    return saliencies, target_logit, probs_list
+    
+    return model.get_saliency()
+    
 
 def gaussian(mu, std, n_points=10000):
     x = np.linspace(start=-5*std, stop=5*std, num=n_points)
